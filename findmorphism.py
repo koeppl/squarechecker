@@ -30,11 +30,8 @@ def enumerate_string_morphisms(alphabet, k):
 	for length in lengths:
 		all_strings.extend(''.join(p) for p in product(alphabet, repeat=length))
 
-	# Generate all combinations of mappings for a, b, c
-	for mapping in product(all_strings, repeat=len(alphabet)):
-		yield {'a': mapping[0], 'b': mapping[1], 'c': mapping[2]}
-	# for mapping in all_strings:
-	# 	yield {'a': 'aa', 'b': 'bb', 'c': mapping}
+	for mapping in product(all_strings, repeat=2):
+		yield {'a': 'a', 'b': mapping[0], 'c': mapping[1]}
 
 def apply_morphism(morphism, string):
 	"""
@@ -49,26 +46,12 @@ def apply_morphism(morphism, string):
 	"""
 	return ''.join(morphism[char] for char in string)
 
-# from itertools import product
-#
-# def generate_strings(alphabet, max_length):
-# 	"""
-# 	Generate all strings of a given alphabet up to a maximum length.
-#
-# 	:param alphabet: List of characters in the alphabet (e.g., ['a', 'b', 'c'])
-# 	:param max_length: Maximum length of strings to generate
-# 	:return: A list of strings
-# 	"""
-# 	lengths = list(range(1, max_length + 1))
-# 	random.shuffle(lengths)
-# 	for length in lengths:
-# 		for p in product(alphabet, repeat=length):
-# 			yield ''.join(p)
 
 pure_morphic_squarefree_morphism = { 'a' : 'abc', 'b' : 'ac', 'c': 'b' }
 
 my_parameterized_encoding = { 'a' : 'a', 'b' : 'b', 'c': 'cbbbc' }
-my_order_encoding = { 'a' : 'a', 'b' : 'ccb', 'c': 'bac' }
+# my_orderweak_encoding = { 'a' : 'a', 'b' : 'baabb', 'c': 'c' }
+my_order_encoding = { 'a' : 'a', 'b' : 'b', 'c': 'ac' }
 my_cart_encoding = {'a': 'bac', 'b': 'ccb', 'c': 'a'}
 
 
@@ -81,13 +64,10 @@ def check_encoding(encoding, rootlength, matching):
 		assert is_square_free(rootlength, matching, enctext)
 
 
-encodinglength = 4
+encodinglength = 5
 morphism_iteration=6
-rootminlength=4
+rootminlength=3
 if __name__ == "__main__":
-	check_encoding(my_parameterized_encoding, 3, compute_prev_encoding)
-	check_encoding(my_order_encoding, 3, compute_order_preserving_encoding)
-	check_encoding(my_cart_encoding, 4, psv_encoding)
 	print('[start]')
 
 	alphabet = ['a', 'b', 'c']
@@ -100,30 +80,10 @@ if __name__ == "__main__":
 		isSquareFree = True
 		for text in texts:
 			enctext = apply_morphism(encoding, text)
+			# if not is_square_free(rootminlength, compute_order_preserving_weak_encoding, enctext):
+			# if not is_square_free(rootminlength, psv_encoding, enctext):
 			if not is_square_free(rootminlength, psv_encoding, enctext):
 				isSquareFree = False
 				break
 		if isSquareFree:
 			print(encoding)
-
-
-
-	# # Argument parser for command line usage
-	# parser = argparse.ArgumentParser(description="Check maximal length for a square-free word under a specific matching and alphabet size")
-	# #alphabet size:
-	# parser.add_argument("--sigma", "-s", type=int, help="The size of the alphabet (e.g., 2 for {a, b}).", default=2)
-	# parser.add_argument("--type", "-t", type=str, choices=["strict", "parameterized", "order", "cart"], help="The type of matching to use (string or parameterized).", default="parameterized")
-	# # matching length:
-	# parser.add_argument("--length", "-l", type=int, help="The maximum length of allowed roots.", default=1)
-	# args = parser.parse_args()
-  #
-	# alphabet = list(map(chr, range(ord('a'),(ord('a')+ args.sigma))))
-	# encoder = lambda x : x
-	# if args.type == "parameterized":
-	# 	encoder = compute_prev_encoding
-	# elif args.type == "order":
-	# 	encoder = compute_order_preserving_encoding
-	# elif args.type == "cart":
-	# 	encoder = psv_encoding
-  #
-	# depth_first_search(alphabet, lambda x: is_square_free(args.length, encoder, x))

@@ -39,7 +39,8 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description="Check maximal length for a square-free word under a specific matching and alphabet size")
 	#alphabet size:
 	parser.add_argument("--sigma", "-s", type=int, help="The size of the alphabet (e.g., 2 for {a, b}).", default=2)
-	parser.add_argument("--type", "-t", type=str, choices=["strict", "parameterized", "order", "cart"], help="The type of matching to use (string or parameterized).", default="parameterized")
+	parser.add_argument("-o", type=str, choices=["square", "cube"], help="The type of structure to search.", default="square")
+	parser.add_argument("--type", "-t", type=str, choices=["strict", "parameterized", "orderweak", "order", "cart"], help="The type of matching to use (string or parameterized).", default="parameterized")
 	# matching length:
 	parser.add_argument("--length", "-l", type=int, help="The maximum length of allowed roots.", default=1)
 	args = parser.parse_args()
@@ -48,9 +49,15 @@ if __name__ == "__main__":
 	encoder = lambda x : x
 	if args.type == "parameterized":
 		encoder = compute_prev_encoding
+	elif args.type == "orderweak":
+		encoder = compute_order_preserving_weak_encoding
 	elif args.type == "order":
 		encoder = compute_order_preserving_encoding
 	elif args.type == "cart":
 		encoder = psv_encoding
+	
+	check_fun = is_square_free
+	if args.o == 'cube':
+		check_fun = is_cube_free
 
-	depth_first_search(alphabet, lambda x: is_square_free(args.length, encoder, x))
+	depth_first_search(alphabet, lambda x: check_fun(args.length, encoder, x))
