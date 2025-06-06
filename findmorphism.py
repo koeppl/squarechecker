@@ -30,8 +30,9 @@ def enumerate_string_morphisms(alphabet, k):
 	for length in lengths:
 		all_strings.extend(''.join(p) for p in product(alphabet, repeat=length))
 
-	for mapping in product(all_strings, repeat=2):
-		yield {'a': 'a', 'b': mapping[0], 'c': mapping[1]}
+	# Generate all combinations of mappings for a, b, c
+	for mapping in product(all_strings, repeat=len(alphabet)):
+		yield {'a': mapping[0], 'b': mapping[1], 'c': mapping[2]}
 
 def apply_morphism(morphism, string):
 	"""
@@ -47,13 +48,12 @@ def apply_morphism(morphism, string):
 	return ''.join(morphism[char] for char in string)
 
 
+# my_parameterized_encoding = { 'a' : 'a', 'b' : 'b', 'c': 'cbbbc' }
+# # my_orderweak_encoding = { 'a' : 'a', 'b' : 'baabb', 'c': 'c' }
+# my_order_encoding = { 'a' : 'a', 'b' : 'b', 'c': 'ac' }
+# my_cart_encoding = {'a': 'bac', 'b': 'ccb', 'c': 'a'}
+
 pure_morphic_squarefree_morphism = { 'a' : 'abc', 'b' : 'ac', 'c': 'b' }
-
-my_parameterized_encoding = { 'a' : 'a', 'b' : 'b', 'c': 'cbbbc' }
-# my_orderweak_encoding = { 'a' : 'a', 'b' : 'baabb', 'c': 'c' }
-my_order_encoding = { 'a' : 'a', 'b' : 'b', 'c': 'ac' }
-my_cart_encoding = {'a': 'bac', 'b': 'ccb', 'c': 'a'}
-
 
 
 def check_encoding(encoding, rootlength, matching):
@@ -64,25 +64,29 @@ def check_encoding(encoding, rootlength, matching):
 		assert is_square_free(rootlength, matching, enctext)
 
 
-encodinglength = 5
-morphism_iteration=6
-rootminlength=3
 if __name__ == "__main__":
-	print('[start]')
+	parser = argparse.ArgumentParser(description="Enumerates morphisms that generate l^+ square-free words under different equivalence types.")
+	common_argparse(parser)
+	parser.add_argument('--codelength', type=int, default=5, help='The maximum length of the strings in the coding morphism.')
+	parser.add_argument('--iterations', type=int, default=6, help='The number of iterations of the morphism to apply to the start word a.')
+	args = parser.parse_args()
+	args.sigma = 3
+	alphabet = list(map(chr, range(ord('a'),(ord('a')+ args.sigma))))
+	encoder = get_comparator(EquivTypes[args.type.upper()])
+	check_fun = get_structure_checker(StructureTypes[args.o.upper()])
 
-	alphabet = ['a', 'b', 'c']
 	texts = ['a']
-	for it in range(1,morphism_iteration):
-		texts.append(apply_morphism(pure_morphic_squarefree_morphism, texts[-1])) 
+
+	for it in range(1,args.iterations):
+		texts.append(apply_morphism(pure_morphic_squarefree_morphism, texts[-1]))
 		assert is_square_free(1, lambda x:x, texts[-1])
 
-	for encoding in enumerate_string_morphisms(alphabet, encodinglength):
+	for encoding in enumerate_string_morphisms(alphabet, args.codelength):
 		isSquareFree = True
+		print(encoding)
 		for text in texts:
 			enctext = apply_morphism(encoding, text)
-			# if not is_square_free(rootminlength, compute_order_preserving_weak_encoding, enctext):
-			# if not is_square_free(rootminlength, psv_encoding, enctext):
-			if not is_square_free(rootminlength, psv_encoding, enctext):
+			if not check_fun(args.length, encoder, enctext):
 				isSquareFree = False
 				break
 		if isSquareFree:

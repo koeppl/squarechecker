@@ -1,3 +1,55 @@
+#!/usr/bin/env python3
+""" This module provides various encoding functions and utilities for string analysis. """
+# pylint: disable=bad-indentation,line-too-long,invalid-name
+
+import enum
+import argparse
+
+def common_argparse(parser: argparse.ArgumentParser):
+	""" Adds common arguments to the provided parser. """
+	parser.add_argument("--sigma", "-s", type=int, help="The size of the alphabet (e.g., 2 for {a, b}).", default=2)
+	parser.add_argument("-o", type=str, choices=list(StructureTypes.__members__.keys()), help="The type of structure to search.", default="SQUARE")
+	parser.add_argument("--type", "-t", type=str, choices=list(EquivTypes.__members__.keys()), help="The type of matching to use (string or parameterized).", default="PARAMETERIZED")
+	parser.add_argument("--length", "-l", type=int, help="The maximum length of allowed roots.", default=1)
+
+
+class EquivTypes(enum.StrEnum):
+	""" Enumeration of equivalence types for strings. """
+	STRICT = enum.auto()
+	PARAMETERIZED = enum.auto()
+	ORDER_PRESERVING = enum.auto()
+	WEAK_ORDER_PRESERVING = enum.auto()
+	CARTESIAN = enum.auto()
+
+
+class StructureTypes(enum.StrEnum):
+	""" Enumeration of equivalence types for strings. """
+	SQUARE = enum.auto()
+	CUBE = enum.auto()
+
+def get_structure_checker(structure_type: StructureTypes):
+	""" Returns a function to check if a string is square-free or cube-free based on the structure type. """
+	if structure_type == StructureTypes.SQUARE:
+		return is_square_free
+	elif structure_type == StructureTypes.CUBE:
+		return is_cube_free
+	else:
+		raise ValueError(f"Unknown structure type: {structure_type}")
+
+def get_comparator(equiv_type: EquivTypes):
+	""" Returns a comparator function based on the equivalence type. """
+	if equiv_type == EquivTypes.STRICT:
+		return lambda x: x
+	elif equiv_type == EquivTypes.PARAMETERIZED:
+		return compute_prev_encoding
+	elif equiv_type == EquivTypes.ORDER_PRESERVING:
+		return compute_order_preserving_encoding
+	elif equiv_type == EquivTypes.WEAK_ORDER_PRESERVING:
+		return compute_order_preserving_weak_encoding
+	elif equiv_type == EquivTypes.CARTESIAN:
+		return psv_encoding
+	else:
+		raise ValueError(f"Unknown equivalence type: {equiv_type}")
 
 def compute_order_preserving_weak_encoding(s: str) -> list[int]:
 	sorted_indices = sorted(range(len(s)), key=lambda i: (s[i], i))
